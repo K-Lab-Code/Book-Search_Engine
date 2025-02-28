@@ -1,19 +1,65 @@
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
+import { useMutation } from '@apollo/client';
+import {ADD_USER} from '../utils/mutations'
 
-import { createUser } from '../utils/API';
 import Auth from '../utils/auth';
-import type { User } from '../models/User';
+//import type { User } from '../models/User';
 
 // biome-ignore lint/correctness/noEmptyPattern: <explanation>
 const SignupForm = ({}: { handleModalClose: () => void }) => {
+  const [formState, setFormState] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [addUser] = useMutation(ADD_USER);
+
+   // set state for form validation
+   const [validated] = useState(false);
+   // set state for alert
+   const [showAlert, setShowAlert] = useState(false);
+
+  // update state based on form input changes
+  const handleInputChange = (event: ChangeEvent) => {
+    const { name, value } = event.target as HTMLInputElement;
+
+    setFormState({
+      ...formState,
+      [name]: value,
+    });
+  };
+
+  // submit form
+  const handleFormSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    console.log(formState);
+    const form = event.currentTarget as HTMLFormElement;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    try {
+      const { data } = await addUser({
+        variables: { input: { ...formState } },
+      });
+
+      Auth.login(data.addProfile.token);
+    } catch (e) {
+      console.error(e);
+      setShowAlert(true);
+    }
+  };
+  /*
   // set initial form state
   const [userFormData, setUserFormData] = useState<User>({ username: '', email: '', password: '', savedBooks: [] });
   // set state for form validation
   const [validated] = useState(false);
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
+
+  const [addUser, { error, data }] = useMutation(ADD_USER);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -29,29 +75,24 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
       event.preventDefault();
       event.stopPropagation();
     }
-
     try {
-      const response = await createUser(userFormData);
+      const { data } = await addUser({
+        variables: { input: { ...userFormData } },
+      });
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const { token } = await response.json();
-      Auth.login(token);
-    } catch (err) {
-      console.error(err);
+      Auth.login(data.addProfile.token);
+    } catch (e) {
+      console.error(e);
       setShowAlert(true);
     }
-
+  };
     setUserFormData({
       username: '',
       email: '',
       password: '',
       savedBooks: [],
     });
-  };
-
+*/
   return (
     <>
       {/* This is needed for the validation functionality above */}
@@ -68,7 +109,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
             placeholder='Your username'
             name='username'
             onChange={handleInputChange}
-            value={userFormData.username || ''}
+            value={formState.name || ''}
             required
           />
           <Form.Control.Feedback type='invalid'>Username is required!</Form.Control.Feedback>
@@ -81,7 +122,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
             placeholder='Your email address'
             name='email'
             onChange={handleInputChange}
-            value={userFormData.email || ''}
+            value={formState.email || ''}
             required
           />
           <Form.Control.Feedback type='invalid'>Email is required!</Form.Control.Feedback>
@@ -94,13 +135,13 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
             placeholder='Your password'
             name='password'
             onChange={handleInputChange}
-            value={userFormData.password || ''}
+            value={formState.password || ''}
             required
           />
           <Form.Control.Feedback type='invalid'>Password is required!</Form.Control.Feedback>
         </Form.Group>
         <Button
-          disabled={!(userFormData.username && userFormData.email && userFormData.password)}
+          disabled={!(formState.name && formState.email && formState.password)}
           type='submit'
           variant='success'>
           Submit
