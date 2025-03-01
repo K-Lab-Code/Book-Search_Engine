@@ -10,7 +10,7 @@ import Auth from '../utils/auth';
 // biome-ignore lint/correctness/noEmptyPattern: <explanation>
 const SignupForm = ({}: { handleModalClose: () => void }) => {
   const [formState, setFormState] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
   });
@@ -42,10 +42,11 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
     }
     try {
       const { data } = await addUser({
-        variables: { input: { ...formState } },
+        variables: {...formState },
       });
+      console.log('after addUser');
 
-      Auth.login(data.addProfile.token);
+      Auth.login(data.addUser.token);
     } catch (e) {
       console.error(e);
       setShowAlert(true);
@@ -109,7 +110,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
             placeholder='Your username'
             name='username'
             onChange={handleInputChange}
-            value={formState.name || ''}
+            value={formState.username || ''}
             required
           />
           <Form.Control.Feedback type='invalid'>Username is required!</Form.Control.Feedback>
@@ -141,7 +142,7 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
           <Form.Control.Feedback type='invalid'>Password is required!</Form.Control.Feedback>
         </Form.Group>
         <Button
-          disabled={!(formState.name && formState.email && formState.password)}
+          disabled={!(formState.username && formState.email && formState.password)}
           type='submit'
           variant='success'>
           Submit

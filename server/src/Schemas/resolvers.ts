@@ -1,8 +1,7 @@
-import User from '../models/index.js';
-import { signToken, AuthenticationError } from '../services/auth.js';
-//import { AuthenticationError } from 'apollo-server-express';
-//import bcrypt from 'bcryptjs';
-//import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
+import { signToken} from '../services/auth.js';
+import { AuthenticationError } from 'apollo-server-express';
+
 
 
 
@@ -15,14 +14,21 @@ interface bookArgs {
     link: string;
 }//keep this
 
-
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  password: string;
+  bookCount: number;
+  savedBooks: [bookArgs]
+}
 interface Context {//
     user?: User;
 }//keep this
 
 const resolvers = {
     Query: {
-        me: async (_parent: any, _args: any, context: Context): Promise<User | null> => {
+        me: async (_parent: any, _args: any, context: Context): Promise<typeof User | null> => {
             if (context.user) {
                 return await User.findOne({ _id: context.user._id });
             }
@@ -30,33 +36,40 @@ const resolvers = {
         },//keep this
     },
     Mutation: {
-        addUser: async (_parent: any, { username, email, password }: { username: string; email: string; password: string }): Promise<{ token: string; user: User }> => {
-            const user = await User.create({ username, email, password });
+        addUser: async (_parent: any, { username, email, password }: { username: string; email: string; password: string }):  Promise<any> => {//Promise<{ token: string; user: User }> is wasn't working so I overide it
+
+          const user = await User.create({ username, email, password });
             //add away to catch errors if(!user){}
-            const token = signToken(user.name, user.email, user._id);
+            const token = signToken(user.username, user.email, user._id);
             return { token, user };
         },//keep this
-        login: async (_parent: any, { username, email, password }: { username: string; email: string; password: string }): Promise<{ token: string; user: User }> => {
-            const user = await User.findOne({ $or: [{ username }, { email }] });
+        login: async (_parent: any, {email, password }: { email: string; password: string }): Promise<any> => {//Promise<{ token: string; user: User }> is wasn't working so I overide it. 
+          const user = await User.findOne({ email });
             if (!user) {
                 throw AuthenticationError;
             }
+
             const correctPw = await user.isCorrectPassword(password);
+
             if (!correctPw) {
+
                 throw AuthenticationError;
             }
+
             const token = signToken(user.username, user.password, user._id);
+
             return { token, user };
         },//keep this
-        saveBook: async (_parent: any, { bookId, authors, description, title, image, link }: bookArgs, context: Context): Promise<User | null> => {
-            if (context.user) {
+        saveBook: async (_parent: any, {bookInput} : {bookInput:bookArgs}, context: Context): Promise<User | null> => {
+
+          if (context.user) {
                 try {
-                    const updatedUser = await User.findOneAndUpdate(
-                        { _id: context.user.id },
-                        { $addToSet: { savedBooks: { bookId, authors, description, title, image, link } } },
+
+                    return await User.findOneAndUpdate(
+                        { _id: context.user._id },
+                        { $addToSet: { savedBooks: bookInput } },
                         { new: true, runValidators: true }
                     );
-                    return updatedUser;
                 } catch (err) {
                     console.log(err);
                     return null;
@@ -66,9 +79,10 @@ const resolvers = {
             }
         },//keep this
         removeBook: async (_parent: any, { bookId }: {bookId:string}, context: Context): Promise<User | null> => {
-            if (context.user) {
+ 
+          if (context.user) {
                 return await User.findOneAndUpdate(
-                    { _id: context.user.id },
+                    { _id: context.user._id },
                     { $pull: { savedBooks: { bookId } } },
                     { new: true }
                   );
