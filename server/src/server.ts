@@ -1,4 +1,5 @@
 import express from 'express';
+import type { Request, Response } from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import path from 'node:path';
@@ -30,10 +31,11 @@ const startServer = async () => {
 
   // if we're in production, serve client/build as static assets
   if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/dist')));
+    const clientPath = path.join(process.cwd(), 'client', 'dist');
+    app.use(express.static(clientPath));
 
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    app.get('*', (_req: Request, res: Response) => {
+      res.sendFile(path.join(clientPath, 'index.html'));
     });
   }
 
