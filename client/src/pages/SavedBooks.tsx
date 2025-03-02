@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
 import { useQuery, useMutation } from '@apollo/client';
 
@@ -17,6 +17,12 @@ const SavedBooks = () => {
     savedBooks: [],
   });
 
+  useEffect(() => {
+    if (data?.me) {
+      setUserData(data.me);
+    }
+  }, [data]);
+  
   const [removeBook] = useMutation(REMOVE_BOOK);
 
   const handleDeleteBook = async (bookId: string) => {

@@ -1,3 +1,3 @@
 import User from './User.js';
-
-export default { User };
+//does it work?
+export { User };
