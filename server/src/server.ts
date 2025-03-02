@@ -31,11 +31,10 @@ const startServer = async () => {
 
   // if we're in production, serve client/build as static assets
   if (process.env.NODE_ENV === 'production') {
-    const clientPath = path.join(process.cwd(), 'client', 'dist');
-    app.use(express.static(clientPath));
+    app.use(express.static(path.join(__dirname, '../client/dist')));
 
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.join(clientPath, 'index.html'));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
     });
   }
 
