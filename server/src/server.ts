@@ -1,8 +1,8 @@
 import express from 'express';
-import type { Request, Response } from 'express';
+//import type { Request, Response } from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
-import path from 'node:path';
+//import path from 'node:path';
 import { typeDefs, resolvers } from './Schemas/index.js';
 import db from './config/connection.js';
 //import routes from './routes/index.js';
@@ -30,6 +30,7 @@ const startServer = async () => {
   ));
 
   // if we're in production, serve client/build as static assets
+  /*
   if (process.env.NODE_ENV === 'production') {
     const clientPath = path.join(process.cwd(), 'client', 'dist');
     app.use(express.static(clientPath));
@@ -38,6 +39,7 @@ const startServer = async () => {
       res.sendFile(path.join(clientPath, 'index.html'));
     });
   }
+    */
 
 
 
